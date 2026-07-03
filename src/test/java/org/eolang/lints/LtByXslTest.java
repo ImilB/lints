@@ -312,6 +312,29 @@ final class LtByXslTest {
     }
 
     @Test
+    @Timeout(5L)
+    void checksNamedObjectAbstractNestedLintOnLargeXmirInReasonableTime()
+        throws ImpossibleModificationException {
+        final int chains = 500;
+        final int depth = 100;
+        final Directives dirs = new Directives().add("object");
+        for (int chain = 0; chain < chains; chain += 1) {
+            for (int idx = 0; idx < depth; idx += 1) {
+                dirs.add("o").attr("name", String.format("n%d_%d", chain, idx));
+            }
+            for (int idx = 0; idx < depth; idx += 1) {
+                dirs.up();
+            }
+        }
+        Assertions.assertDoesNotThrow(
+            () -> new LtByXsl("critical/named-object-abstract-nested").defects(
+                new XMLDocument(new Xembler(dirs).xml())
+            ),
+            "Large XMIR with many nested named objects must not time out for named-object-abstract-nested lint"
+        );
+    }
+
+    @Test
     void returnsNonExperimentalWhenXslStaysQuiet() {
         MatcherAssert.assertThat(
             "Experimental flag should be set to false",
