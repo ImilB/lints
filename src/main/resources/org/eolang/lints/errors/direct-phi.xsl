@@ -9,9 +9,10 @@
   <xsl:import href="/org/eolang/funcs/escape.xsl"/>
   <xsl:import href="/org/eolang/funcs/defect-context.xsl"/>
   <xsl:output encoding="UTF-8" method="xml"/>
+  <xsl:key name="direct-phi" match="o" use="contains(@base, '.φ')"/>
   <xsl:template match="/">
     <defects>
-      <xsl:for-each select="//o[contains(@base, '.φ')]">
+      <xsl:for-each select="key('direct-phi', true())">
         <xsl:element name="defect">
           <xsl:variable name="line" select="eo:lineno(@line)"/>
           <xsl:attribute name="line">
