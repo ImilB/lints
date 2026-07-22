@@ -17,12 +17,10 @@
           <equals arg1="${os.windows}" arg2="true"/>
           <then>
             <exec executable="cmd" failonerror="true">
-              <arg line="/c vale"/>
-              <arg line="sync"/>
+              <arg line="/c vale sync"/>
             </exec>
             <exec executable="cmd" failonerror="true">
-              <arg line="/c vale"/>
-              <arg line="src/main/resources/org/eolang/motives"/>
+              <arg line="/c vale src/main/resources/org/eolang/motives"/>
             </exec>
           </then>
           <else>
