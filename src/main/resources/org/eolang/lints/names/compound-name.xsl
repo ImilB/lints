@@ -9,39 +9,33 @@
   <xsl:import href="/org/eolang/funcs/special-name.xsl"/>
   <xsl:import href="/org/eolang/funcs/escape.xsl"/>
   <xsl:output encoding="UTF-8" method="xml"/>
-  <!--Since developers might decide not to use kebab-case, it's better to catch all such cases.-->
-  <xsl:function name="eo:compound" as="xs:boolean">
-    <xsl:param name="name"/>
-    <xsl:sequence select="contains($name, '-') or contains($name, '_') or matches($name, '[A-Z]')"/>
-  </xsl:function>
-  <!--
-    These prefixes/suffixes are idiomatic in EO standard library:
-    - 'as-' for type conversions (as-bytes, as-i64, as-number, etc.)
-    - 'is-' for boolean predicates (is-empty, is-nan, is-finite, etc.)
-    - '-of' for extracting parts (slice-of, value-of, length-of, etc.)
-  -->
-  <xsl:function name="eo:idiomatic" as="xs:boolean">
-    <xsl:param name="name"/>
-    <xsl:sequence select="starts-with($name, 'as-') or starts-with($name, 'is-') or ends-with($name, '-of')"/>
-  </xsl:function>
+  
   <xsl:template match="/">
     <defects>
-      <xsl:for-each select="//o[@base and @name and not(eo:special(@name)) and eo:compound(@name) and not(eo:idiomatic(@name))]">
-        <defect>
-          <xsl:variable name="line" select="eo:lineno(@line)"/>
-          <xsl:attribute name="line">
-            <xsl:value-of select="$line"/>
-          </xsl:attribute>
-          <xsl:if test="$line = '0'">
-            <xsl:attribute name="context">
-              <xsl:value-of select="eo:defect-context(.)"/>
-            </xsl:attribute>
-          </xsl:if>
-          <xsl:attribute name="severity">warning</xsl:attribute>
-          <xsl:text>Object name </xsl:text>
-          <xsl:value-of select="eo:escape(@name)"/>
-          <xsl:text> should not be compound unless it's formation</xsl:text>
-        </defect>
+      <xsl:for-each select="//o[@base and @name]">
+        <xsl:variable name="name" select="@name"/>
+        <xsl:choose>
+          <xsl:when test="eo:special($name)"/>
+          <xsl:when test="not(contains($name, '-') or contains($name, '_') or matches($name, '[A-Z]'))"/>
+          <xsl:when test="starts-with($name, 'as-') or starts-with($name, 'is-') or ends-with($name, '-of')"/>
+          <xsl:otherwise>
+            <defect>
+              <xsl:variable name="line" select="eo:lineno(@line)"/>
+              <xsl:attribute name="line">
+                <xsl:value-of select="$line"/>
+              </xsl:attribute>
+              <xsl:if test="$line = '0'">
+                <xsl:attribute name="context">
+                  <xsl:value-of select="eo:defect-context(.)"/>
+                </xsl:attribute>
+              </xsl:if>
+              <xsl:attribute name="severity">warning</xsl:attribute>
+              <xsl:text>Object name </xsl:text>
+              <xsl:value-of select="eo:escape($name)"/>
+              <xsl:text> should not be compound unless it's formation</xsl:text>
+            </defect>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:for-each>
     </defects>
   </xsl:template>
