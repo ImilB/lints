@@ -13,9 +13,9 @@
 
 This Java package is a collection of "lints" (aka "checkers") for
 [XMIR] (an intermediate representation of a
-[EO] object). This is not about static analysis or code
-formatting. This is about best practices and readiness of code
-for successful compilation and execution.
+[EO] object). It is a static analysis tool focused on best practices,
+correctness, and code readiness for successful compilation and execution,
+rather than on source formatting alone.
 
 We use this package as a dependency in the
 [EO-to-Java compiler][EO]:

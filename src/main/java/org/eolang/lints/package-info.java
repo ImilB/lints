@@ -4,7 +4,7 @@
  */
 
 /**
- * Lints (style checkers).
+ * Lints for XMIR static analysis.
  * @since 0.0.1
  */
 package org.eolang.lints;
