@@ -4,7 +4,9 @@
  */
 package org.eolang.lints;
 
+import java.util.Collection;
 import org.cactoos.iterable.IterableEnvelope;
+import org.cactoos.list.ListOf;
 
 /**
  * Mono lints without lint names.
@@ -22,6 +24,14 @@ final class MonoWithout extends IterableEnvelope<Lint> {
      * @param names Lints to exclude
      */
     MonoWithout(final String... names) {
+        this(new ListOf<>(names));
+    }
+
+    /**
+     * Ctor.
+     * @param names Lints to exclude
+     */
+    MonoWithout(final Collection<String> names) {
         super(
             new WithoutLints(
                 new PkMono(new WithoutLints(MonoWithout.LINTS, names)),

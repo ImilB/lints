@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.cactoos.iterable.Sticky;
 import org.cactoos.iterable.Synced;
+import org.cactoos.list.ListOf;
 
 /**
  * A single source XMIR to analyze.
@@ -41,6 +42,16 @@ public final class Source {
     private final Iterable<Lint> lints;
 
     /**
+     * Disabled lint names accumulated via without().
+     */
+    private final Collection<String> disabled;
+
+    /**
+     * Whether the source uses the default mono lint set.
+     */
+    private final boolean mono;
+
+    /**
      * Ctor.
      * @param file The absolute path of the XMIR file
      * @throws FileNotFoundException If file isn't found
@@ -54,7 +65,7 @@ public final class Source {
      * @param xml The XMIR
      */
     public Source(final XML xml) {
-        this(xml, Source.MONO);
+        this(xml, Source.MONO, new ListOf<>(), true);
     }
 
     /**
@@ -67,8 +78,26 @@ public final class Source {
      * @param list The lints
      */
     Source(final XML xml, final Iterable<Lint> list) {
+        this(xml, list, new ListOf<>(), false);
+    }
+
+    /**
+     * Ctor.
+     * @param xml The XMIR
+     * @param list The lints
+     * @param names Disabled lint names
+     * @param dflt Whether the source uses the default mono lint set
+     */
+    private Source(
+        final XML xml,
+        final Iterable<Lint> list,
+        final Collection<String> names,
+        final boolean dflt
+    ) {
         this.xmir = xml;
         this.lints = list;
+        this.disabled = names;
+        this.mono = dflt;
     }
 
     /**
@@ -77,7 +106,9 @@ public final class Source {
      * @return Program analysis without specific name
      */
     public Source without(final String... names) {
-        return new org.eolang.lints.Source(this.xmir, new MonoWithout(names));
+        final Collection<String> all = new ArrayList<>(this.disabled);
+        all.addAll(new ListOf<>(names));
+        return new org.eolang.lints.Source(this.xmir, this.lints, all, this.mono);
     }
 
     /**
@@ -88,7 +119,7 @@ public final class Source {
      */
     public XML fix() throws IOException {
         XML result = this.xmir;
-        for (final Lint lint : this.lints) {
+        for (final Lint lint : this.active()) {
             result = lint.fix().apply(result);
         }
         return result;
@@ -104,7 +135,7 @@ public final class Source {
     public Collection<Defect> defects() {
         try {
             final Collection<Defect> messages = new ArrayList<>(0);
-            for (final Lint lint : this.lints) {
+            for (final Lint lint : this.active()) {
                 messages.addAll(new ScopedDefects(lint.defects(this.xmir), "S"));
             }
             return messages;
@@ -114,5 +145,21 @@ public final class Source {
                 ex
             );
         }
+    }
+
+    /**
+     * Active lints with current exclusions applied.
+     * @return Iterable of active lints
+     */
+    private Iterable<Lint> active() {
+        final Iterable<Lint> res;
+        if (this.disabled.isEmpty()) {
+            res = this.lints;
+        } else if (this.mono) {
+            res = new MonoWithout(this.disabled);
+        } else {
+            res = new WithoutLints(this.lints, this.disabled);
+        }
+        return res;
     }
 }

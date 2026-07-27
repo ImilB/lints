@@ -217,6 +217,43 @@ final class SourceTest {
     }
 
     @Test
+    void accumulatesDisabledLintsAcrossWithoutCalls() {
+        final Collection<Defect> defects = new Source(
+            new EoProgram("org/eolang/lints/non-ascii-cyrillic.eo").parse()
+        ).without("ascii-only").without(
+            "object-does-not-match-filename",
+            "comment-not-capitalized",
+            "empty-object",
+            "mandatory-home",
+            "mandatory-version",
+            "mandatory-package",
+            "comment-too-short",
+            "mandatory-spdx",
+            "no-attribute-formation",
+            "unit-test-missing"
+        ).defects();
+        MatcherAssert.assertThat(
+            "Sequential without() calls should keep earlier disabled lints disabled too",
+            defects.stream()
+                .filter(defect -> "ascii-only".equals(defect.rule()))
+                .collect(Collectors.toList()),
+            Matchers.emptyIterable()
+        );
+    }
+
+    @Test
+    void preservesCustomLintSetInWithout() {
+        MatcherAssert.assertThat(
+            "without() should filter the current custom lint set instead of switching to mono lints",
+            new Source(
+                new EoProgram("org/eolang/lints/non-ascii-cyrillic.eo").parse(),
+                new ListOf<>(new LtAlways(), new LtAsciiOnly())
+            ).without("always").defects(),
+            Matchers.hasSize(1)
+        );
+    }
+
+    @Test
     void returnsOnlyOneDefect() {
         final Collection<Defect> defects = new Source(
             new EoProgram("org/eolang/lints/main-with-test.eo").parse()
