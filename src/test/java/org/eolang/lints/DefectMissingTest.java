@@ -81,12 +81,22 @@ final class DefectMissingTest {
     }
 
     @Test
-    void returnsTrueIfSomeLineIsOutOfRange() {
+    void returnsFalseIfRangeStillMatchesAnotherDefect() {
         MatcherAssert.assertThat(
-            "Defect should be missing, but it was not",
+            "Range unlint should stay valid when another defect is still inside the range",
             new DefectMissing(new MapOf<>("noisy-lint", new ListOf<>(4, 6)), new ListOf<>())
                 .apply("noisy-lint:6-10"),
-            Matchers.equalTo(true)
+            Matchers.equalTo(false)
+        );
+    }
+
+    @Test
+    void returnsFalseWhenRangeMatchesAtLeastOneDefect() {
+        MatcherAssert.assertThat(
+            "Range unlint should make sense when it suppresses at least one real defect",
+            new DefectMissing(new MapOf<>("noisy-lint", new ListOf<>(4, 6)), new ListOf<>())
+                .apply("noisy-lint:4-5"),
+            Matchers.equalTo(false)
         );
     }
 
