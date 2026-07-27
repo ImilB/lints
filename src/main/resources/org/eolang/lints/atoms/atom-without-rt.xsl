@@ -28,7 +28,7 @@
             </xsl:attribute>
             <xsl:text>The </xsl:text>
             <xsl:value-of select="eo:escape(@name)"/>
-            <xsl:text> atom is defined without the +rt meta, which doesn't make any sense</xsl:text>
+            <xsl:text> atom is defined without runtime metadata</xsl:text>
           </xsl:element>
         </xsl:for-each>
       </xsl:if>

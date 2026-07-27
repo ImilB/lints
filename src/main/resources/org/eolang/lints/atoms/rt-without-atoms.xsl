@@ -25,7 +25,7 @@
             <xsl:attribute name="severity">
               <xsl:text>error</xsl:text>
             </xsl:attribute>
-            <xsl:text>Using the +rt meta without any atoms in the program doesn't make sense</xsl:text>
+            <xsl:text>The program defines runtime metadata but has no atoms</xsl:text>
           </xsl:element>
         </xsl:if>
       </xsl:if>

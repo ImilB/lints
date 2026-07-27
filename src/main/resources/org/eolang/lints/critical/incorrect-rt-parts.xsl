@@ -27,7 +27,7 @@
             <xsl:attribute name="severity">
               <xsl:text>critical</xsl:text>
             </xsl:attribute>
-            <xsl:text>The +rt meta may have only two parts, which is the name of the runtime, and the location of the runtime, while currently there are </xsl:text>
+            <xsl:text>The runtime meta must have exactly two parts: the runtime name and its location, but now it has </xsl:text>
             <xsl:value-of select="$parts"/>
             <xsl:text> parts</xsl:text>
           </xsl:element>
