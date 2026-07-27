@@ -54,23 +54,24 @@ final class LtUnlint implements Lint {
                 lname, lname
             )
         ).map(xnav -> xnav.text().get()).collect(Collectors.toList());
-        final boolean global = !granular.isEmpty();
+        boolean recognized = false;
         final AtomicBoolean added = new AtomicBoolean(false);
-        granular.forEach(
-            unlint -> {
-                if (unlint.matches(String.format("%s:\\d+-\\d+", lname))) {
-                    problematic.removeIf(new UnlintInRange(unlint));
-                } else if (unlint.matches(String.format("%s:\\d+", lname))) {
-                    problematic.removeIf(
-                        line -> line == Integer.parseInt(
-                            new ListOf<>(unlint.split(":")).get(1)
-                        )
-                    );
-                } else if (unlint.equals(lname)) {
-                    problematic.clear();
-                }
+        for (final String unlint : granular) {
+            if (unlint.matches(String.format("%s:\\d+-\\d+", lname))) {
+                problematic.removeIf(new UnlintInRange(unlint));
+                recognized = true;
+            } else if (unlint.matches(String.format("%s:\\d+", lname))) {
+                problematic.removeIf(
+                    line -> line == Integer.parseInt(
+                        new ListOf<>(unlint.split(":")).get(1)
+                    )
+                );
+                recognized = true;
+            } else if (unlint.equals(lname)) {
+                problematic.clear();
+                recognized = true;
             }
-        );
+        }
         problematic.forEach(
             line -> found.forEach(
                 defect -> {
@@ -81,7 +82,7 @@ final class LtUnlint implements Lint {
                 }
             )
         );
-        if (!added.get() && !global) {
+        if (!added.get() && !recognized) {
             defects.addAll(found);
         }
         return defects;
