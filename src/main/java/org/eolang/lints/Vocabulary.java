@@ -6,11 +6,13 @@ package org.eolang.lints;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
+import org.cactoos.set.SetOf;
 import org.cactoos.io.InputStreamOf;
 import org.cactoos.io.ResourceOf;
 
@@ -28,6 +30,13 @@ final class Vocabulary {
      * Pattern to split kebab-case names.
      */
     private static final Pattern KEBAB = Pattern.compile("-");
+
+    /**
+     * Non-verbs that still end with "s" in common object names.
+     */
+    private static final Collection<String> NON_VERBS = new SetOf<>(
+        "always", "this", "was", "its"
+    );
 
     /**
      * Part-Of-Speech tagger.
@@ -74,13 +83,30 @@ final class Vocabulary {
      * @return True if the first word is a VBZ-tagged verb
      */
     boolean isVerb(final String name) {
+        final String[] words = Arrays.stream(Vocabulary.KEBAB.split(name))
+            .map(s -> s.toLowerCase(Locale.ROOT))
+            .toArray(String[]::new);
+        final String first = words[0];
         return "VBZ".equals(
             this.tagger.tag(
-                Stream.concat(
-                    Stream.of("It"),
-                    Arrays.stream(Vocabulary.KEBAB.split(name))
-                ).map(s -> s.toLowerCase(Locale.ROOT)).toArray(String[]::new)
+                Stream.concat(Stream.of("It"), Arrays.stream(words)).toArray(String[]::new)
             )[1]
-        );
+        ) || Vocabulary.looksLikeVerb(first);
+    }
+
+    /**
+     * Fallback heuristic for common EO test-object names.
+     * @param word First token of the name
+     * @return True if it looks like a singular verb
+     */
+    private static boolean looksLikeVerb(final String word) {
+        return "is".equals(word)
+            || "has".equals(word)
+            || (
+                word.length() > 2
+                    && word.endsWith("s")
+                    && !Vocabulary.NON_VERBS.contains(word)
+                    && !word.endsWith("ss")
+            );
     }
 }
